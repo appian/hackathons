@@ -1,0 +1,21 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: <YOUR_APP_NAME>
+  labels:
+    app: <YOUR_APP_NAME>
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: <YOUR_APP_NAME>
+  template:
+    metadata:
+      labels:
+        app: <YOUR_APP_NAME>
+    spec:
+      containers:
+      - name: server
+        image: <YOUR_DOCKERHUB_USERNAMEA>/<DOCKER_IMAGE>:<IMAGE_TAG>
+        ports:
+        - containerPort: 8080
