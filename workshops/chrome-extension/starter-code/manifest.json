@@ -1,0 +1,17 @@
+{
+  "manifest_version": 2,
+  "name": "[Name your extension]",
+  "description": "[Add a description]",
+  "version": "1.0",
+  "browser_action": {
+      "default_icon": "[reference your icon]",
+      "default_popup": "popup.html"
+  },
+  "permissions": ["storage", "activeTab", "tabs"],
+  "background": {
+      "scripts": ["background.js"],
+      "persistent": false
+  },
+  "options_page": "options.html",
+  "web_accessible_resources": ["reference your audio file"]
+}
