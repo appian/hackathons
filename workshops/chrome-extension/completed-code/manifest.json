@@ -7,7 +7,7 @@
     "default_icon": "icon.png",
     "default_popup": "popup.html"
   },
-  "permissions": ["storage", "activeTab", "tabs"],
+  "permissions": ["storage", "*://*/*"],
   "background": {
     "scripts": ["background.js"],
     "persistent": true
