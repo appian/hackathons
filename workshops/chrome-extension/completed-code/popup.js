@@ -47,7 +47,8 @@ function formatTimer(timeInEpochUntilEnd) {
   return `${Math.max(0, hours).toString().padStart(2, "0")}:${Math.max(0, minutes).toString().padStart(2, "0")}:${Math.max(0, seconds).toString().padStart(2, "0")}`;
 }
 
-// wrap storage get request in promise to prevent async querying
+// a helper to store data using the chrome API
+// storage get request is wrapped in a promise to prevent async querying
 const getStorageData = key =>
   new Promise((resolve, reject) =>
     chrome.storage.sync.get([key], function(result) {

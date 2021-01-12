@@ -1,7 +1,8 @@
 // create global timer object for timer
 let timer;
 
-// wrap storage get request in promise to prevent async querying
+// a helper to store data using the chrome API
+// storage get request is wrapped in a promise to prevent async querying
 const getStorageData = key =>
   new Promise((resolve, reject) =>
     chrome.storage.sync.get([key], function(result) {
@@ -14,9 +15,9 @@ const port = chrome.extension.connect({
   name: 'Communication'
 });
 
-// format countdown timer in dd:hh:mm:ss format
+// format countdown timer in hh:mm:ss format
 function formatTimer(timeInEpochUntilEnd) {
-  // Time calculations for days, hours, minutes and seconds
+  // Time calculations for hours, minutes and seconds
   const hours = Math.floor(timeInEpochUntilEnd / (1000 * 3600));
   const minutes = Math.floor((timeInEpochUntilEnd % (1000 * 3600)) / (1000 * 60));
   const seconds = Math.floor((timeInEpochUntilEnd % (1000 * 60)) / 1000);
@@ -24,7 +25,7 @@ function formatTimer(timeInEpochUntilEnd) {
   return `${Math.max(0, hours).toString().padStart(2, "0")}:${Math.max(0, minutes).toString().padStart(2, "0")}:${Math.max(0, seconds).toString().padStart(2, "0")}`;
 }
 
-// build message stating time left in dd:hh:mm:ss format
+// build message stating time left in hh:mm:ss format
 function getTimeLeft(endTime) {
   const timeInEpochUntilEnd = new Date(endTime) - new Date();
   if (timeInEpochUntilEnd < 0) {
@@ -79,7 +80,8 @@ document.addEventListener('DOMContentLoaded', async function() {
 
   // set up startTimer & resetTimer buttons on UI
   const startTimerButton = document.getElementById('startTimer');
-  // TODO: create reference to the reset button in the UI
+  // TODO: create constant to reference the reset button in the UI
+
   startTimerButton.addEventListener('click', async function() {
     await setTimer(timerSeconds);
   });

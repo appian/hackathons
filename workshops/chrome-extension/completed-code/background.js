@@ -29,6 +29,9 @@ function timerEnded() {
   });
 }
 
+
+// a helper to store data using the chrome API
+// storage get request is wrapped in a promise to prevent async querying
 const getStorageData = key =>
   new Promise((resolve, reject) =>
     chrome.storage.sync.get([key], function(result) {

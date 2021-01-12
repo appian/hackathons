@@ -2,7 +2,8 @@
 let timer;
 
 
-// our helper to store data using the chrome API
+// a helper to store data using the chrome API
+// storage get request is wrapped in a promise to prevent async querying
 const getStorageData = key =>
   new Promise((resolve, reject) =>
     chrome.storage.sync.get([key], function(result) {
@@ -10,7 +11,7 @@ const getStorageData = key =>
     })
   );
 
-// action to trigger audio when timer ends
+// action to trigger audio and display alert when timer ends
 function timerEnded() {
   const myAudio = new Audio(chrome.runtime.getURL('[TODO: insert audio file name]'));
   myAudio.play();
