@@ -1,10 +1,56 @@
-// create global timer object for timer
+// create timer variable
 let timer;
+
+// a helper to retrieve data from storage using the chrome API
+// storage get request is wrapped in a promise to prevent async querying
+const getStorageData = key =>
+  new Promise((resolve, reject) =>
+    chrome.storage.sync.get([key], function(result) {
+      chrome.runtime.lastError ? reject(Error(chrome.runtime.lastError.message)) : resolve(result[key]);
+    })
+  );
 
 // communication port to background script
 const port = chrome.extension.connect({
   name: 'Communication'
 });
+
+// a helper to format and return time in hh:mm:ss
+function formatTime(duration) {
+  // Time calculations for hours, minutes and seconds
+  const hours = Math.floor(duration / (1000 * 3600));
+  const minutes = Math.floor((duration % (1000 * 3600)) / (1000 * 60));
+  const seconds = Math.floor((duration % (1000 * 60)) / 1000);
+
+  return `${Math.max(0, hours).toString().padStart(2, "0")}:${Math.max(0, minutes).toString().padStart(2, "0")}:${Math.max(0, seconds).toString().padStart(2, "0")}`;
+}
+
+// calculate time left and build a countdown message for popup.html
+function getTimeLeft(endTime) {
+  const timeLeftUntilEnd = new Date(endTime) - new Date();
+  if (timeLeftUntilEnd <= 0) {
+    return "TIME'S UP!";
+  }
+  let message = formatTime(timeLeftUntilEnd);
+  return message + ' Left!';
+}
+
+// change the values on popup.html
+async function updatePopUpContents(timerStartTime, timerEndTime) {
+  document.getElementById('startTimer').style.display = timerStartTime ? 'none' : 'inline';
+  document.getElementById('resetTimer').style.display = timerStartTime ? 'inline' : 'none';
+  if (timerStartTime) {
+    // start timer
+    timer = setInterval(function() {
+      document.getElementById('timerHeader').innerHTML = timerStartTime ? `${getTimeLeft(timerEndTime)}` : '';
+    }, 10);
+  } else {
+    // reset timer to blank state
+    let seconds = await getStorageData('timerSeconds');
+    document.getElementById('timerHeader').innerHTML = `Click the button to start your timer for ${formatTime(seconds * 1000)}!`;
+    clearInterval(timer);
+  }
+}
 
 // set timer once start is clicked
 async function setTimer(timerSeconds) {
@@ -27,35 +73,6 @@ async function resetTimer() {
   updatePopUpContents();
 }
 
-// build message stating time left in dd:hh:mm:ss format
-function getTimeLeft(endTime) {
-  const timeInEpochUntilEnd = new Date(endTime) - new Date();
-  if (timeInEpochUntilEnd < 0) {
-    return "TIME'S UP!";
-  }
-  let message = formatTimer(timeInEpochUntilEnd);
-  return message + ' Left!';
-}
-
-// format countdown timer in dd:hh:mm:ss format
-function formatTimer(timeInEpochUntilEnd) {
-  // Time calculations for days, hours, minutes and seconds
-  const hours = Math.floor(timeInEpochUntilEnd / (1000 * 3600));
-  const minutes = Math.floor((timeInEpochUntilEnd % (1000 * 3600)) / (1000 * 60));
-  const seconds = Math.floor((timeInEpochUntilEnd % (1000 * 60)) / 1000);
-
-  return `${Math.max(0, hours).toString().padStart(2, "0")}:${Math.max(0, minutes).toString().padStart(2, "0")}:${Math.max(0, seconds).toString().padStart(2, "0")}`;
-}
-
-// a helper to store data using the chrome API
-// storage get request is wrapped in a promise to prevent async querying
-const getStorageData = key =>
-  new Promise((resolve, reject) =>
-    chrome.storage.sync.get([key], function(result) {
-      chrome.runtime.lastError ? reject(Error(chrome.runtime.lastError.message)) : resolve(result[key]);
-    })
-  );
-
 document.addEventListener('DOMContentLoaded', async function() {
   // grab Chrome Storage Data
   let timerStartTime = await getStorageData('startTime');
@@ -65,6 +82,7 @@ document.addEventListener('DOMContentLoaded', async function() {
   // set up startTimer & resetTimer buttons on UI
   const startTimerButton = document.getElementById('startTimer');
   const resetTimerButton = document.getElementById('resetTimer');
+
   startTimerButton.addEventListener('click', async function() {
     await setTimer(timerSeconds);
   });
@@ -75,19 +93,3 @@ document.addEventListener('DOMContentLoaded', async function() {
   updatePopUpContents(timerStartTime, timerEndTime);
 });
 
-// change the values on popup.html
-async function updatePopUpContents(timerStartTime, timerEndTime) {
-  document.getElementById('startTimer').style.display = timerStartTime ? 'none' : 'inline';
-  document.getElementById('resetTimer').style.display = timerStartTime ? 'inline' : 'none';
-  if (timerStartTime) {
-    // start timer
-    timer = setInterval(function() {
-      document.getElementById('timerHeader').innerHTML = timerStartTime ? `${getTimeLeft(timerEndTime)}` : '';
-    }, 10);
-  } else {
-    // reset timer to blank state
-    let seconds = await getStorageData('timerSeconds');
-    document.getElementById('timerHeader').innerHTML = `Click the button to start your timer for ${formatTimer(seconds * 1000)}!`;
-    clearInterval(timer);
-  }
-}

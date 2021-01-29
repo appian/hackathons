@@ -1,7 +1,7 @@
-// create global timer object for timer
+// create timer variable
 let timer;
 
-// a helper to store data using the chrome API
+// a helper to retrieve data from storage using the chrome API
 // storage get request is wrapped in a promise to prevent async querying
 const getStorageData = key =>
   new Promise((resolve, reject) =>
@@ -15,23 +15,23 @@ const port = chrome.extension.connect({
   name: 'Communication'
 });
 
-// format countdown timer in hh:mm:ss format
-function formatTimer(timeInEpochUntilEnd) {
+// a helper to format and return time in hh:mm:ss
+function formatTime(duration) {
   // Time calculations for hours, minutes and seconds
-  const hours = Math.floor(timeInEpochUntilEnd / (1000 * 3600));
-  const minutes = Math.floor((timeInEpochUntilEnd % (1000 * 3600)) / (1000 * 60));
-  const seconds = Math.floor((timeInEpochUntilEnd % (1000 * 60)) / 1000);
+  const hours = Math.floor(duration / (1000 * 3600));
+  const minutes = Math.floor((duration % (1000 * 3600)) / (1000 * 60));
+  const seconds = Math.floor((duration % (1000 * 60)) / 1000);
 
   return `${Math.max(0, hours).toString().padStart(2, "0")}:${Math.max(0, minutes).toString().padStart(2, "0")}:${Math.max(0, seconds).toString().padStart(2, "0")}`;
 }
 
-// build message stating time left in hh:mm:ss format
+// calculate time left and build a countdown message for popup.html
 function getTimeLeft(endTime) {
-  const timeInEpochUntilEnd = new Date(endTime) - new Date();
-  if (timeInEpochUntilEnd < 0) {
+  const timeLeftUntilEnd = new Date(endTime) - new Date();
+  if (timeLeftUntilEnd <= 0) {
     return "[TODO: add message for when time is up!]";
   }
-  let message = formatTimer(timeInEpochUntilEnd);
+  let message = formatTime(timeLeftUntilEnd);
   return message + ' Left!';
 }
 
@@ -47,7 +47,7 @@ async function updatePopUpContents(timerStartTime, timerEndTime) {
   } else {
     // reset timer to blank state
     let seconds = await getStorageData('timerSeconds');
-    document.getElementById('timerHeader').innerHTML = `Click the button to start your timer for ${formatTimer(seconds * 1000)}!`;
+    document.getElementById('timerHeader').innerHTML = `Click the button to start your timer for ${formatTime(seconds * 1000)}!`;
     clearInterval(timer);
   }
 }
@@ -86,6 +86,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     await setTimer(timerSeconds);
   });
   // TODO: set up the event listener so that the reset button calls resetTimer
+
   updatePopUpContents(timerStartTime, timerEndTime);
 });
 
